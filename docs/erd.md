@@ -10,21 +10,21 @@ erDiagram
     CURRENCIES ||--o{ TRANSACTIONS : "is used in"
 
     USERS {
-        VARCHAR2(20) user_id PK "사용자 식별자"
-        NUMBER(20,2) balance "현재 잔액"
+        VARCHAR2 user_id PK "사용자 식별자"
+        NUMBER balance "현재 잔액"
     }
 
     CURRENCIES {
-        VARCHAR2(3) currency_code PK "통화 코드 (USD, KRW 등)"
-        NUMBER(20,6) exchange_rate "환율 정보"
+        VARCHAR2 currency_code PK "통화 코드 (USD, KRW 등)"
+        NUMBER exchange_rate "환율 정보"
     }
 
     TRANSACTIONS {
         NUMBER tx_id PK "거래 고유 번호 (IDENTITY)"
-        VARCHAR2(20) user_id FK "사용자 식별자"
-        VARCHAR2(3) currency_code FK "통화 코드"
-        NUMBER(20,2) amount "거래 금액"
-        VARCHAR2(10) tx_type "거래 타입 (BUY, SELL)"
+        VARCHAR2 user_id FK "사용자 식별자"
+        VARCHAR2 currency_code FK "통화 코드"
+        NUMBER amount "거래 금액"
+        VARCHAR2 tx_type "거래 타입 (BUY, SELL)"
         TIMESTAMP tx_time "거래 발생 시간"
     }
 ```
