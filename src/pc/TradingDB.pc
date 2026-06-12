@@ -1,0 +1,51 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <vector>
+#include <string>
+#include <sqlca.h>
+#include "TradingDB.hpp"
+
+EXEC SQL BEGIN DECLARE SECTION;
+    char h_user_id[21];
+    double h_amount;
+    char h_currency_code[4];
+    char h_tx_type[11];
+    int h_batch_size;
+    
+    char b_user_id[100][21];
+    double b_amount[100];
+    char b_currency_code[100][4];
+    char b_tx_type[100][11];
+EXEC SQL END DECLARE SECTION;
+
+void handle_sql_error() {
+    printf("SQL Error: %.*s\n", (int)sqlca.sqlerrm.sqlerrml, sqlca.sqlerrm.sqlerrmc);
+    EXEC SQL ROLLBACK;
+}
+
+void TradingDB::connect() {
+    EXEC SQL BEGIN DECLARE SECTION;
+        char user_pwd[50] = "trading/trading_pass@FREE";
+    EXEC SQL END DECLARE SECTION;
+    
+    EXEC SQL WHENEVER SQLERROR DO handle_sql_error();
+    EXEC SQL CONNECT :user_pwd;
+    printf("Connected to DB\n");
+}
+
+void TradingDB::process_batch(const std::vector<Transaction>& txs) {
+    h_batch_size = txs.size();
+    for (int i = 0; i < h_batch_size && i < 100; ++i) {
+        snprintf(b_user_id[i], 21, "%s", txs[i].userId.c_str());
+        b_amount[i] = txs[i].amount;
+        snprintf(b_currency_code[i], 4, "%s", txs[i].currencyCode.c_str());
+        snprintf(b_tx_type[i], 11, "%s", txs[i].type.c_str());
+    }
+
+    EXEC SQL FOR :h_batch_size
+    INSERT INTO transactions (user_id, amount, currency_code, tx_type)
+    VALUES (:b_user_id, :b_amount, :b_currency_code, :b_tx_type);
+
+    EXEC SQL COMMIT;
+    printf("Processed batch of %d transactions\n", h_batch_size);
+}

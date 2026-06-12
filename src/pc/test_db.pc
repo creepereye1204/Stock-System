@@ -1,0 +1,28 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <sqlca.h>
+
+void sql_error(const char *msg) {
+    printf("%s\n", msg);
+    printf("SQL Error: %.*s\n", (int)sqlca.sqlerrm.sqlerrml, sqlca.sqlerrm.sqlerrmc);
+    EXEC SQL ROLLBACK RELEASE;
+    exit(1);
+}
+
+int main() {
+    EXEC SQL BEGIN DECLARE SECTION;
+    char *user_pwd = "trading/trading_pass@FREE";
+    char db_name[20];
+    EXEC SQL END DECLARE SECTION;
+
+    EXEC SQL WHENEVER SQLERROR DO sql_error("Connection Error");
+
+    printf("Connecting to database...\n");
+    EXEC SQL CONNECT :user_pwd;
+
+    EXEC SQL SELECT global_name INTO :db_name FROM global_name;
+    printf("Connected to: %s\n", db_name);
+
+    EXEC SQL COMMIT RELEASE;
+    return 0;
+}

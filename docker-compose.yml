@@ -1,0 +1,36 @@
+services:
+  db:
+    image: gvenzl/oracle-xe:latest
+    container_name: digitied_db
+    environment:
+      - ORACLE_PASSWORD=password
+      - APP_USER=trading
+      - APP_USER_PASSWORD=trading_pass
+    ports:
+      - "1521:1521"
+    volumes:
+      - ./docker/oracle/scripts:/container-entrypoint-initdb.d
+    networks:
+      - trading_net
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+    container_name: digitied_app
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+    environment:
+      - ORACLE_HOME=/usr/lib/oracle/current/client64
+      - LD_LIBRARY_PATH=/usr/lib/oracle/current/client64/lib
+      - TNS_ADMIN=/app/docker/oracle/network/admin
+    networks:
+      - trading_net
+    tty: true
+    stdin_open: true
+
+networks:
+  trading_net:
+    driver: bridge
